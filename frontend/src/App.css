@@ -1,0 +1,35 @@
+.App {
+  text-align: center;
+  padding: 40px;
+  font-family: Arial, sans-serif;
+}
+
+form {
+  margin-bottom: 20px;
+}
+
+input {
+  margin: 5px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  margin: 5px;
+  padding: 8px 12px;
+  border: none;
+  background-color: #0078ff;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056cc;
+}
+
+li {
+  list-style: none;
+  margin: 10px 0;
+}

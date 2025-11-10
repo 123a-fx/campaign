@@ -1,28 +1,17 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import CampaignDashboard from "./CampaignDashboard";
+import React, { useState } from "react";
+import AddCampaign from "./AddCampaign";
+import CampaignList from "../components/CampaignList";
 
 function Dashboard() {
-  const navigate = useNavigate();
+  const [refresh, setRefresh] = useState(false);
 
-  useEffect(() => {
-    const loggedIn = localStorage.getItem("isLoggedIn");
-    if (!loggedIn) {
-      navigate("/");
-    }
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    navigate("/");
-  };
+  const handleRefresh = () => setRefresh(!refresh);
 
   return (
     <div>
-      <button onClick={handleLogout} style={{ float: "right" }}>
-        Logout
-      </button>
-      <CampaignDashboard />
+      <h1>Campaign Dashboard</h1>
+      <AddCampaign onAdd={handleRefresh} />
+      <CampaignList key={refresh} />
     </div>
   );
 }

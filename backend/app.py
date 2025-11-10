@@ -1,27 +1,33 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import uuid
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="frontend/build")
 CORS(app)
 
-campaigns = []  # temporary storage
+# Dummy in-memory storage
+campaigns = []
 
 @app.route('/')
-def home():
-    return jsonify({"message": "Welcome to Campaign Tracker Backend!"})
+def serve_react():
+    return send_from_directory(app.static_folder, 'index.html')
 
-# Get all campaigns
+@app.route('/<path:path>')
+def serve_static(path):
+    if os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+# Campaign APIs
 @app.route('/campaigns', methods=['GET'])
 def get_campaigns():
     return jsonify(campaigns)
 
-# Add a new campaign
 @app.route('/campaigns', methods=['POST'])
 def add_campaign():
     data = request.get_json()
-    print("📩 Received from frontend:", data)  # Debugging print
-
     new_campaign = {
         "id": str(uuid.uuid4()),
         "name": data.get("name"),
@@ -29,26 +35,18 @@ def add_campaign():
         "startDate": data.get("startDate"),
         "status": data.get("status")
     }
-
-    print("✅ Stored campaign:", new_campaign)  # Debugging print
-
     campaigns.append(new_campaign)
     return jsonify(new_campaign), 201
 
-# Update campaign
 @app.route('/campaigns/<id>', methods=['PUT'])
 def update_campaign(id):
     data = request.get_json()
     for campaign in campaigns:
         if campaign["id"] == id:
-            campaign["name"] = data.get("name", campaign["name"])
-            campaign["client"] = data.get("client", campaign["client"])
-            campaign["startDate"] = data.get("startDate", campaign["startDate"])
-            campaign["status"] = data.get("status", campaign["status"])
+            campaign.update(data)
             return jsonify(campaign)
     return jsonify({"error": "Campaign not found"}), 404
 
-# Delete campaign
 @app.route('/campaigns/<id>', methods=['DELETE'])
 def delete_campaign(id):
     global campaigns
@@ -56,4 +54,6 @@ def delete_campaign(id):
     return jsonify({"message": "Campaign deleted"}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # For Render deployment, host on 0.0.0.0
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

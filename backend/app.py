@@ -1,26 +1,14 @@
+import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import uuid
-import os
 
-app = Flask(__name__, static_folder="frontend/build")
+app = Flask(__name__, static_folder="frontend/build")  # point to React build
 CORS(app)
 
-# Dummy in-memory storage
 campaigns = []
 
-@app.route('/')
-def serve_react():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/<path:path>')
-def serve_static(path):
-    if os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
-
-# Campaign APIs
+# API routes
 @app.route('/campaigns', methods=['GET'])
 def get_campaigns():
     return jsonify(campaigns)
@@ -38,22 +26,15 @@ def add_campaign():
     campaigns.append(new_campaign)
     return jsonify(new_campaign), 201
 
-@app.route('/campaigns/<id>', methods=['PUT'])
-def update_campaign(id):
-    data = request.get_json()
-    for campaign in campaigns:
-        if campaign["id"] == id:
-            campaign.update(data)
-            return jsonify(campaign)
-    return jsonify({"error": "Campaign not found"}), 404
+# Serve React frontend
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, "index.html")
 
-@app.route('/campaigns/<id>', methods=['DELETE'])
-def delete_campaign(id):
-    global campaigns
-    campaigns = [c for c in campaigns if c["id"] != id]
-    return jsonify({"message": "Campaign deleted"}), 200
-
-if __name__ == '__main__':
-    # For Render deployment, host on 0.0.0.0
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host="0.0.0.0", port=port)
